@@ -5,16 +5,27 @@ import { prisma } from './prisma'
 import bcrypt from 'bcryptjs'
 
 // Validate required environment variables
-if (!process.env.NEXTAUTH_SECRET) {
-  throw new Error('NEXTAUTH_SECRET environment variable is not set')
+const nextAuthSecret = process.env.NEXTAUTH_SECRET
+const nextAuthUrl = process.env.NEXTAUTH_URL
+
+if (!nextAuthSecret) {
+  console.error('❌ NEXTAUTH_SECRET is not set in environment variables!')
+  console.error('Please add NEXTAUTH_SECRET to AWS Amplify environment variables.')
 }
 
-if (!process.env.NEXTAUTH_URL) {
-  console.warn('NEXTAUTH_URL environment variable is not set. This may cause issues in production.')
+if (!nextAuthUrl) {
+  console.error('❌ NEXTAUTH_URL is not set in environment variables!')
+  console.error('Please add NEXTAUTH_URL to AWS Amplify environment variables.')
+}
+
+if (!nextAuthSecret || !nextAuthUrl) {
+  console.error('Current environment variables:')
+  console.error('NEXTAUTH_SECRET:', nextAuthSecret ? '✅ Set' : '❌ Missing')
+  console.error('NEXTAUTH_URL:', nextAuthUrl ? `✅ Set (${nextAuthUrl})` : '❌ Missing')
 }
 
 export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: nextAuthSecret || 'fallback-secret-change-in-production',
   adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
