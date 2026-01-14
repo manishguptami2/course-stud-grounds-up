@@ -23,7 +23,7 @@ export function MarkdownEditor({ value, onChange, placeholder }: MarkdownEditorP
         onChange={onChange}
         preview="edit"
         hideToolbar={false}
-        visibleDragBar={true}
+        visibleDragbar={true}
         height={400}
         textareaProps={{
           placeholder: placeholder || 'Write your lesson content in Markdown...',
