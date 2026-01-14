@@ -4,12 +4,12 @@ import { getSession } from '@/lib/get-session'
 
 // Lazy initialization of S3Client to handle missing env vars gracefully
 function getS3Client() {
-  const region = process.env.AWS_REGION
-  const accessKeyId = process.env.AWS_ACCESS_KEY_ID
-  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
+  const region = process.env.REGION
+  const accessKeyId = process.env.ACCESS_KEY_ID
+  const secretAccessKey = process.env.SECRET_ACCESS_KEY
 
   if (!region || !accessKeyId || !secretAccessKey) {
-    throw new Error('AWS credentials are not configured. Please set AWS_REGION, AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY in your environment variables.')
+    throw new Error('AWS credentials are not configured. Please set REGION, ACCESS_KEY_ID, and SECRET_ACCESS_KEY in your environment variables.')
   }
 
   return new S3Client({
@@ -47,9 +47,9 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    const bucketName = process.env.AWS_S3_BUCKET_NAME
+    const bucketName = process.env.S3_BUCKET_NAME
     if (!bucketName) {
-      throw new Error('AWS_S3_BUCKET_NAME is not configured')
+      throw new Error('S3_BUCKET_NAME is not configured')
     }
 
     const timestamp = Date.now()
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     }))
 
     // Construct S3 URL - works for all regions
-    const region = process.env.AWS_REGION
+    const region = process.env.REGION
     const publicUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${key}`
     return NextResponse.json({ url: publicUrl })
   } catch (error) {
