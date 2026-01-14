@@ -1,0 +1,141 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+// datasource db {
+//  provider = "sqlite"
+//  url      = env("DATABASE_URL")
+// }
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   // "STUDENT" or "INSTRUCTOR"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  coursesAsInstructor Course[]     @relation("CourseInstructor")
+  enrollments         Enrollment[]
+  quizAttempts        QuizAttempt[]
+
+  @@map("users")
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  thumbnail   String?
+  instructorId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  instructor User        @relation("CourseInstructor", fields: [instructorId], references: [id], onDelete: Cascade)
+  modules    Module[]
+  enrollments Enrollment[]
+
+  @@map("courses")
+}
+
+model Module {
+  id        String   @id @default(cuid())
+  title     String
+  order     Int
+  courseId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons  Lesson[]
+
+  @@map("modules")
+}
+
+model Lesson {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   // Markdown content
+  order     Int
+  moduleId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  quiz   Quiz?
+
+  @@map("lessons")
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
+}
+
+model Quiz {
+  id        String   @id @default(cuid())
+  title     String
+  lessonId  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  lesson   Lesson      @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  questions Question[]
+  attempts QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+model Question {
+  id           String   @id @default(cuid())
+  text         String
+  options      String   // JSON string array
+  correctAnswer Int      // Index of correct answer
+  quizId       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("questions")
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  quizId    String
+  score     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_attempts")
+}
+
